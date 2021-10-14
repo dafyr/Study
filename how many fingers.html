@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+<head>
+	<title>How many fingers</title>
+    <style>
+        input {
+            margin: 5px;
+            float: left;
+            
+        }
+        button {
+            float:left;
+        }
+    </style>
+</head>
+    <body>
+        
+        <div> Guess the number of fingers </div>
+        <input type="text" id="text">
+        <button id="button">Guess</button>
+        
+        
+        <script type="text/javascript">
+        var x = 0;
+        var y = 0;
+            document.getElementById("button").onclick = function() {
+                x = document.getElementById("text").value;
+                y = (Math.floor(Math.random() * 11));
+            if(x == y){
+       alert("you guessed it right i have " + y)
+            }
+                else {
+                    alert("you guessed it wrong i have " + y )
+                }
+            }
+        
+        </script>
+    	
+    </body>
+</html>
