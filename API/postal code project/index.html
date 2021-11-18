@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <title>Узнать почтовый индекс</title>
+    </head>
+    <body>
+    
+        <label for="inp">Введите город и улицу чтобы узнать почтовый индекс</label>
+        <input type="text" id="inp" placeholder="Красноярск Пушкина 100">
+        <input type="submit" value="Ввод" id="but">
+        <p id="txt"></p>
+        
+    </body>
+   
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>  
+    
+    <script type="text/javascript">
+    
+        $("#but").click(function(){
+            
+             var address = $("#inp").val();
+            
+        
+            
+    $.ajax({
+        url : "https://maps.googleapis.com/maps/api/geocode/json?address=" + encodeURIComponent(address) + "&key=AIzaSyC5Mx41Oa6vJ0Et8hDciENH6UyQRH_6PVI",
+        type: "GET",
+        success: function (data) {
+            
+            console.log(data);
+        
+            $.each(data["results"][0]["address_components"], function(key, value) {
+              
+                if (value["types"][0] == "postal_code") {
+                    
+                     $("#txt").html("Почтовый индекс для этого адреса: " + value["long_name"]);
+                    
+                } else {
+                    
+                    $("#txt").html("Укажите более точный адресс чтобы узнать почтовый индекс")
+                }
+                
+            })
+        }
+    })
+ }) 
+    </script>
+    
+</html>
