@@ -21,25 +21,35 @@
     if (array_key_exists("submit", $_POST)) {
         
         include("connection.php");
-        
-        if (!$_POST['email']) {
+
+
+        function error_forms() {
+
+            try {
+             
+                if (!$_POST['email']) {
+                    
+                    throw new Exception("An email address is required<br>");
+                    
+                } 
+                
+                if (!$_POST['password']) {
+                    
+                    throw new Exception("A password is required<br>");
+                    
+                } 
+             
+            } catch (Exception $error) {
+                $error = "<p>There were error(s) in your form:</p>".$error;
+                $error->getMessage();
+                die();
+            }
+        }
+
+        function sign_up()    {
             
-            $error .= "An email address is required<br>";
-            
-        } 
-        
-        if (!$_POST['password']) {
-            
-            $error .= "A password is required<br>";
-            
-        } 
-        
-        if ($error != "") {
-            
-            $error = "<p>There were error(s) in your form:</p>".$error;
-            
-        } else {
-            
+            global $link;
+
             if ($_POST['signUp'] == '1') {
             
                 $query = "SELECT id FROM `users` WHERE email = '".mysqli_real_escape_string($link, $_POST['email'])."' LIMIT 1";
@@ -49,56 +59,67 @@
                 if (mysqli_num_rows($result) > 0) {
 
                     $error = "That email address is taken.";
+                    die();
+                }
 
-                } else {
-
-                    $query = "INSERT INTO `users` (`email`, `password`) VALUES ('".mysqli_real_escape_string($link, $_POST['email'])."', '".mysqli_real_escape_string($link, $_POST['password'])."')";
+                    $query = "INSERT INTO `users` (`email`, `password`) 
+                    VALUES ('".mysqli_real_escape_string($link, $_POST['email'])."', '".mysqli_real_escape_string($link, $_POST['password'])."')";
 
                     if (!mysqli_query($link, $query)) {
 
                         $error = "<p>Could not sign you up - please try again later.</p>";
+                        die();
+                    } 
 
-                    } else {
+            }
 
-                        $query = "UPDATE `users` SET password = '".md5(md5(mysqli_insert_id($link)).$_POST['password'])."' WHERE id = ".mysqli_insert_id($link)." LIMIT 1";
+        }
+
+        function set_password() {
+
+            global $link;
+
+            $query = "UPDATE `users` SET password = 
+            '".md5(md5(mysqli_insert_id($link)).$_POST['password'])."' WHERE id = ".mysqli_insert_id($link)." LIMIT 1";
                         
-                        $id = mysqli_insert_id($link);
+            $id = mysqli_insert_id($link);
                         
-                        mysqli_query($link, $query);
+            mysqli_query($link, $query);
 
-                        $_SESSION['id'] = $id;
+            $_SESSION['id'] = $id;
 
-                        if ($_POST['stayLoggedIn'] == '1') {
+            $year = time() + 60*60*24*365;
 
-                            setcookie("id", $id, time() + 60*60*24*365);
+            if ($_POST['stayLoggedIn'] == '1') {
 
-                        } 
+             setcookie("id", $id, $year);
+
+            } 
+        }
                             
-                        header("Location: loggedinpage.php");
+            header("Location: loggedinpage.php");
 
-                    }
+        function log_in() {
 
-                } 
+            global $link;
+
+            $query = "SELECT * FROM `users` WHERE email = '".mysqli_real_escape_string($link, $_POST['email'])."'";
                 
-            } else {
-                    
-                    $query = "SELECT * FROM `users` WHERE email = '".mysqli_real_escape_string($link, $_POST['email'])."'";
+            $result = mysqli_query($link, $query);
                 
-                    $result = mysqli_query($link, $query);
+            $row = mysqli_fetch_array($result);
                 
-                    $row = mysqli_fetch_array($result);
-                
-                    if (isset($row)) {
+            if (isset($row)) {
                         
-                        $hashedPassword = md5(md5($row['id']).$_POST['password']);
+                $hashedPassword = md5(md5($row['id']).$_POST['password']);
                         
-                        if ($hashedPassword == $row['password']) {
+                    if ($hashedPassword == $row['password']) {
                             
-                            $_SESSION['id'] = $row['id'];
+                        $_SESSION['id'] = $row['id'];
                             
                             if (isset($_POST['stayLoggedIn']) AND $_POST['stayLoggedIn'] == '1') {
 
-                                setcookie("id", $row['id'], time() + 60*60*24*365);
+                                setcookie("id", $row['id'], $year);
 
                             } 
 
@@ -116,7 +137,7 @@
                         
                     }
                     
-                }
+            }    
             
         }
         
@@ -127,96 +148,95 @@
 ?>
 
 <?php include("header.php"); ?>
-      
-      <div class="container" id="homePageContainer">
-      
+
+<div class="container" id="homePageContainer">
+
     <h1>Secret Diary</h1>
-          
-          <p><strong>Store your thoughts permanently and securely.</strong></p>
-          
-          <div id="error"><?php if ($error!="") {
-    echo '<div class="alert alert-danger" role="alert">'.$error.'</div>';
-    
+
+    <p><strong>Store your thoughts permanently and securely.</strong></p>
+
+    <div id="error"><?php error_forms();  
 } ?></div>
 
-<form method="post" id = "signUpForm">
-    
-    <p>Interested? Sign up now.</p>
-    
-    <fieldset class="form-group">
+    <form method="post" id="signUpForm">
 
-        <input class="form-control" type="email" name="email" placeholder="Your Email">
-        
-    </fieldset>
-    
-    <fieldset class="form-group">
-    
-        <input class="form-control" type="password" name="password" placeholder="Password">
-        
-    </fieldset>
-    
-    <div class="checkbox">
-    
-        <label>
-    
-        <input type="checkbox" name="stayLoggedIn" value=1> Stay logged in
-            
-        </label>
-        
-    </div>
-    
-    <fieldset class="form-group">
-    
-        <input type="hidden" name="signUp" value="1">
-        
-        <input class="btn btn-success" type="submit" name="submit" value="Sign Up!">
-        
-    </fieldset>
-    
-    <p><a class="toggleForms">Log in</a></p>
+        <?php function sign_up(); ?>
 
-</form>
+        <p>Interested? Sign up now.</p>
 
-<form method="post" id = "logInForm">
-    
-    <p>Log in using your username and password.</p>
-    
-    <fieldset class="form-group">
+        <fieldset class="form-group">
 
-        <input class="form-control" type="email" name="email" placeholder="Your Email">
-        
-    </fieldset>
-    
-    <fieldset class="form-group">
-    
-        <input class="form-control"type="password" name="password" placeholder="Password">
-        
-    </fieldset>
-    
-    <div class="checkbox">
-    
-        <label>
-    
-            <input type="checkbox" name="stayLoggedIn" value=1> Stay logged in
-            
-        </label>
-        
-    </div>
-        
+            <input class="form-control" type="email" name="email" placeholder="Your Email">
+
+        </fieldset>
+
+        <fieldset class="form-group">
+
+            <input class="form-control" type="password" name="password" placeholder="Password">
+            <?php function set_password(); ?>
+
+        </fieldset>
+
+        <div class="checkbox">
+
+            <label>
+
+                <input type="checkbox" name="stayLoggedIn" value=1> Stay logged in
+                
+            </label>
+
+        </div>
+
+        <fieldset class="form-group">
+
+            <input type="hidden" name="signUp" value="1">
+
+            <input class="btn btn-success" type="submit" name="submit" value="Sign Up!">
+
+        </fieldset>
+
+        <p><a class="toggleForms">Log in <?php function log_in(); ?> </a></p>
+
+    </form>
+
+    <form method="post" id="logInForm">
+
+        <p>Log in using your username and password.</p>
+
+        <fieldset class="form-group">
+
+            <input class="form-control" type="email" name="email" placeholder="Your Email">
+
+        </fieldset>
+
+        <fieldset class="form-group">
+
+            <input class="form-control" type="password" name="password" placeholder="Password">
+
+        </fieldset>
+
+        <div class="checkbox">
+
+            <label>
+
+                <input type="checkbox" name="stayLoggedIn" value=1> Stay logged in
+
+            </label>
+
+        </div>
+
         <input type="hidden" name="signUp" value="0">
-    
-    <fieldset class="form-group">
-        
-        <input class="btn btn-success" type="submit" name="submit" value="Log In!">
-        
-    </fieldset>
-    
-    <p><a class="toggleForms">Sign up</a></p>
 
-</form>
-          
-      </div>
+        <fieldset class="form-group">
+
+            <input class="btn btn-success" type="submit" name="submit" value="Log In!">
+
+        </fieldset>
+
+        <p><a class="toggleForms">Sign up</a></p>
+
+    </form>
+
+</div>
 
 <?php include("footer.php"); ?>
-
-

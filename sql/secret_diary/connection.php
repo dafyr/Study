@@ -1,6 +1,6 @@
 <?php
 
-    $link = mysqli_connect("shareddb1b.hosting.stackcp.net", "cl29-secretdi", "D-fnT^Hbz", "cl29-secretdi");
+    $link = mysqli_connect("sdb-o.hosting.stackcp.net", "users1-31393774a3", "ys1cj4dsvt", "users1-31393774a3");
         
         if (mysqli_connect_error()) {
             
